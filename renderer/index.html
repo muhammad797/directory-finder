@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Target Directory Finder</title>
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;">
+  <style>
+    :root { --bg:#0f172a; --card:#111827; --muted:#94a3b8; --fg:#e5e7eb; --accent:#22c55e; }
+    body { margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial; background: var(--bg); color: var(--fg); }
+    header { padding: 16px 20px; border-bottom: 1px solid #1f2937; font-weight: 600; }
+    .wrap { display: grid; grid-template-columns: 360px 1fr; gap: 16px; padding: 16px; }
+    .card { background: var(--card); border: 1px solid #1f2937; border-radius: 12px; padding: 16px; }
+    .row { display: flex; gap: 8px; align-items: center; }
+    .row + .row { margin-top: 10px; }
+    input[type="text"] { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid #374151; background: #0b1220; color: var(--fg); }
+    textarea { width: 100%; height: 110px; padding: 10px 12px; border-radius: 8px; border: 1px solid #374151; background: #0b1220; color: var(--fg); resize: vertical; }
+    button { background: #1f2937; border: 1px solid #374151; color: var(--fg); padding: 10px 14px; border-radius: 8px; cursor: pointer; }
+    button.primary { background: var(--accent); border-color: var(--accent); color: #052e16; font-weight: 600; }
+    .muted { color: var(--muted); font-size: 12px; }
+    .results { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; font-size: 12.5px; line-height: 1.35; white-space: pre-wrap; }
+    .badge { display:inline-block; padding:2px 8px; border-radius:999px; background:#083344; border:1px solid #0e7490; color:#67e8f9; font-size:11px; }
+  </style>
+</head>
+<body>
+  <header>Target Directory Finder</header>
+  <div class="wrap">
+    <section class="card">
+      <h3 style="margin-top:0">Settings</h3>
+
+      <div class="row">
+        <input id="rootDirInput" type="text" placeholder="Choose root directory…" readonly>
+        <button id="chooseBtn">Browse…</button>
+      </div>
+
+      <div class="row">
+        <textarea id="targetsInput" placeholder="Targets (comma-separated), e.g.: node_modules, Pods, .git, dist, build">node_modules, Pods, .git, dist, build</textarea>
+      </div>
+
+      <div class="row">
+        <button id="scanBtn" class="primary">Scan</button>
+        <span id="status" class="muted"></span>
+      </div>
+
+      <p class="muted" style="margin-top:12px">
+        The scanner will NOT descend into matched folders (e.g., it won’t read inside <code>node_modules</code>).
+      </p>
+    </section>
+
+    <section class="card">
+      <div class="row" style="justify-content: space-between;">
+        <h3 style="margin:0">Results</h3>
+        <span class="badge"><span id="count">0</span> found</span>
+      </div>
+      <div id="results" class="results" style="margin-top:10px;"></div>
+    </section>
+  </div>
+
+  <script src="./renderer.js"></script>
+</body>
+</html>
