@@ -6,6 +6,12 @@ const chooseBtn = document.getElementById('chooseBtn');
 const newTargetInput = document.getElementById('newTargetInput');
 const addTargetBtn = document.getElementById('addTargetBtn');
 const targetsList = document.getElementById('targetsList');
+const scanModeSel = document.getElementById('scanMode');
+const targetsLabel = document.getElementById('targetsLabel');
+const targetsRow = document.getElementById('targetsRow');
+const extensionsRow = document.getElementById('extensionsRow');
+const extensionsInput = document.getElementById('extensionsInput');
+const applyExtBtn = document.getElementById('applyExtBtn');
 const scanBtn = document.getElementById('scanBtn');
 const resultsEl = document.getElementById('results');
 const countEl = document.getElementById('count');
@@ -20,9 +26,14 @@ let targets = loadTargets();
 let rawResults = []; // absolute paths from main
 let currentRoot = '';
 let lastRenderedFlat = [];
+let mode = 'dirs';
+let extensions = loadExtensions();
 
 // Init
 renderTargetsList();
+if (scanModeSel) scanModeSel.value = 'dirs';
+extensionsInput.value = (extensions || []).join(', ');
+updateModeUI();
 
 chooseBtn.addEventListener('click', async () => {
   statusEl.textContent = '';
@@ -55,15 +66,44 @@ targetsList.addEventListener('click', (e) => {
   renderTargetsList();
 });
 
+if (scanModeSel) {
+  scanModeSel.addEventListener('change', () => {
+    mode = scanModeSel.value === 'files' ? 'files' : 'dirs';
+    updateModeUI();
+    statusEl.textContent = '';
+  });
+}
+
+applyExtBtn.addEventListener('click', () => {
+  const arr = parseExtensionsInput(extensionsInput.value);
+  extensions = arr;
+  saveExtensions();
+  toast('Extensions updated');
+});
+
+extensionsInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    applyExtBtn.click();
+  }
+});
+
 scanBtn.addEventListener('click', async () => {
   const rootDir = rootDirInput.value.trim();
   if (!rootDir) {
     statusEl.textContent = 'Please choose a root directory first.';
     return;
   }
-  if (!targets.length) {
-    statusEl.textContent = 'Add at least one target folder name.';
-    return;
+  if (mode === 'dirs') {
+    if (!targets.length) {
+      statusEl.textContent = 'Add at least one target folder name.';
+      return;
+    }
+  } else {
+    if (!extensions.length) {
+      statusEl.textContent = 'Add at least one extension (e.g., .zip).';
+      return;
+    }
   }
 
   resultsEl.textContent = '';
@@ -71,7 +111,10 @@ scanBtn.addEventListener('click', async () => {
   statusEl.textContent = 'Scanning…';
 
   try {
-    const { count, results } = await window.api.runScan({ rootDir, targets });
+    const payload = mode === 'files'
+      ? { rootDir, mode: 'files', extensions }
+      : { rootDir, targets };
+    const { count, results } = await window.api.runScan(payload);
     rawResults = results || [];
     countEl.textContent = String(count || 0);
     statusEl.textContent = 'Done.';
@@ -165,7 +208,41 @@ function renderResults() {
       const div = document.createElement('div');
       div.className = 'item';
       const relPath = rel(item);
-      div.textContent = relPath || item;
+
+      const left = document.createElement('span');
+      left.textContent = relPath || item;
+      div.appendChild(left);
+
+      const actions = document.createElement('span');
+      actions.style.float = 'right';
+
+      const openBtn = document.createElement('button');
+      openBtn.textContent = 'Show in Finder';
+      openBtn.style.marginLeft = '8px';
+      openBtn.addEventListener('click', () => {
+        window.api.revealInFolder(item);
+      });
+
+      const delBtn = document.createElement('button');
+      delBtn.textContent = 'Delete';
+      delBtn.style.marginLeft = '8px';
+      delBtn.addEventListener('click', async () => {
+        const noun = (mode === 'files') ? 'file' : 'folder';
+        const ok = confirm(`Delete this ${noun}? This cannot be undone.`);
+        if (!ok) return;
+        const res = await window.api.deleteFile(item);
+        if (!res || !res.ok) {
+          toast(`Failed: ${res && res.error ? res.error : 'Unknown error'}`);
+          return;
+        }
+        rawResults = rawResults.filter(p => p !== item);
+        renderResults();
+      });
+
+      actions.appendChild(openBtn);
+      actions.appendChild(delBtn);
+      div.appendChild(actions);
+
       groupDiv.appendChild(div);
       lastRenderedFlat.push(relPath || item);
     }
@@ -198,6 +275,36 @@ function inferTargetName(absPath) {
   // target name is the last segment of the path
   const parts = absPath.split(/[\\/]/).filter(Boolean);
   return parts[parts.length - 1] || '(unknown)';
+}
+
+function parseExtensionsInput(s) {
+  return String(s || '')
+    .split(/[,\s]+/)
+    .map(x => x.trim().toLowerCase())
+    .filter(Boolean);
+}
+
+function loadExtensions() {
+  try {
+    const s = localStorage.getItem('fileExtensions');
+    if (s) {
+      const arr = JSON.parse(s);
+      if (Array.isArray(arr)) return arr;
+    }
+  } catch {}
+  return [];
+}
+
+function saveExtensions() {
+  localStorage.setItem('fileExtensions', JSON.stringify(extensions));
+}
+
+function updateModeUI() {
+  const isFiles = mode === 'files';
+  if (targetsLabel) targetsLabel.style.display = isFiles ? 'none' : '';
+  if (targetsRow) targetsRow.style.display = isFiles ? 'none' : '';
+  if (targetsList) targetsList.style.display = isFiles ? 'none' : '';
+  if (extensionsRow) extensionsRow.style.display = isFiles ? '' : 'none';
 }
 
 function loadTargets() {

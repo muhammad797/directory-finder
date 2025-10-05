@@ -28,6 +28,9 @@
     .group .item { padding:6px 8px; border:1px solid #374151; border-radius:6px; background:#0b1220; margin-top:6px; }
     .controls { display:grid; gap:8px; grid-template-columns: 1fr 1fr 1fr; }
     .target-row { display:grid; grid-template-columns: 1fr auto; gap:8px; }
+    #results button {
+      padding: 2px 8px;
+    }
   </style>
 </head>
 <body>
@@ -42,13 +45,26 @@
         <button id="chooseBtn">Browse…</button>
       </div>
 
-      <div class="row"><span class="muted">Targets</span></div>
+      <div class="row"><span class="muted">Scan Mode</span></div>
+      <div class="row">
+        <select id="scanMode">
+          <option value="dirs">Directories (by name)</option>
+          <option value="files">Files (by extension)</option>
+        </select>
+      </div>
+
+      <div class="row" id="targetsLabel"><span class="muted">Targets</span></div>
       <div class="targets-wrap">
-        <div class="target-row">
+        <div class="target-row" id="targetsRow">
           <input id="newTargetInput" type="text" placeholder="Add folder name (e.g., node_modules)">
           <button id="addTargetBtn">Add</button>
         </div>
         <ul id="targetsList" class="targets" style="list-style:none; padding:0; margin-top:8px;"></ul>
+
+        <div class="target-row" id="extensionsRow" style="display:none;">
+          <input id="extensionsInput" type="text" placeholder="Extensions, e.g., .zip, .rar, zip">
+          <button id="applyExtBtn">Apply</button>
+        </div>
       </div>
 
       <div class="row" style="margin-top:10px;">
@@ -57,7 +73,7 @@
       </div>
 
       <p class="muted" style="margin-top:12px">
-        The scanner will NOT descend into matched folders (e.g., it won’t read inside <code>node_modules</code>).
+        In Directories mode, the scanner will NOT descend into matched folders (e.g., it won’t read inside <code>node_modules</code>).
       </p>
     </section>
 
