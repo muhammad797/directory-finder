@@ -1,5 +1,6 @@
 // main.js
 const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
+const childProcess = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const { findTargetDirs, findFilesByExtensions } = require('./scanner');
@@ -91,6 +92,27 @@ ipcMain.handle('file:delete', async (_evt, absPath) => {
     }
     return { ok: true };
   } catch (e) {
+    return { ok: false, error: e && e.message ? e.message : String(e) };
+  }
+});
+
+// IPC: git status for a repository (cwd should be repo root)
+ipcMain.handle('git:status', async (_evt, repoPath) => {
+  if (!repoPath) return { ok: false, error: 'repoPath required' };
+  try {
+    // Quick check to ensure path exists
+    const stat = fs.statSync(repoPath);
+    if (!stat.isDirectory()) return { ok: false, error: 'Not a directory' };
+
+    // Run porcelain to detect any changes (staged/unstaged/untracked)
+    const out = childProcess.execSync('git status --porcelain', {
+      cwd: repoPath,
+      stdio: ['ignore', 'pipe', 'ignore']
+    }).toString();
+    const dirty = out.trim().length > 0;
+    return { ok: true, dirty };
+  } catch (e) {
+    // If command fails (not a repo or git missing), return graceful error
     return { ok: false, error: e && e.message ? e.message : String(e) };
   }
 });

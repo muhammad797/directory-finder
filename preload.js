@@ -5,5 +5,6 @@ contextBridge.exposeInMainWorld('api', {
   chooseRoot: () => ipcRenderer.invoke('dialog:choose-root'),
   runScan: (payload) => ipcRenderer.invoke('scan:run', payload),
   revealInFolder: (absPath) => ipcRenderer.invoke('file:reveal', absPath),
-  deleteFile: (absPath) => ipcRenderer.invoke('file:delete', absPath)
+  deleteFile: (absPath) => ipcRenderer.invoke('file:delete', absPath),
+  gitStatus: (repoPath) => ipcRenderer.invoke('git:status', repoPath)
 });

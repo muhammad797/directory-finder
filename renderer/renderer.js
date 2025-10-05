@@ -210,7 +210,48 @@ function renderResults() {
       const relPath = rel(item);
 
       const left = document.createElement('span');
-      left.textContent = relPath || item;
+      // For .git directories, append a status badge (dirty/clean)
+      if (inferTargetName(item) === '.git') {
+        left.textContent = (relPath || item) + ' ';
+        const isWindows = item.includes('\\') && !item.includes('/');
+        const segs = item.split(/[\\\/]/).filter(Boolean);
+        segs.pop(); // remove .git
+        const repoPath = isWindows
+          ? segs.join('\\')
+          : (item.startsWith('/') ? ('/' + segs.join('/')) : segs.join('/'));
+        const badge = document.createElement('span');
+        badge.className = 'badge';
+        badge.textContent = '…';
+        left.appendChild(badge);
+        // Fetch status asynchronously
+        window.api.gitStatus(repoPath).then((res) => {
+          if (!res || !res.ok) {
+            badge.textContent = 'not a repo';
+            badge.style.background = '#3f1d1d';
+            badge.style.borderColor = '#7f1d1d';
+            badge.style.color = '#fecaca';
+            return;
+          }
+          if (res.dirty) {
+            badge.textContent = 'dirty';
+            badge.style.background = '#3f1d1d';
+            badge.style.borderColor = '#7f1d1d';
+            badge.style.color = '#fecaca';
+          } else {
+            badge.textContent = 'clean';
+            badge.style.background = '#052e16';
+            badge.style.borderColor = '#166534';
+            badge.style.color = '#86efac';
+          }
+        }).catch(() => {
+          badge.textContent = 'not a repo';
+          badge.style.background = '#3f1d1d';
+          badge.style.borderColor = '#7f1d1d';
+          badge.style.color = '#fecaca';
+        });
+      } else {
+        left.textContent = relPath || item;
+      }
       div.appendChild(left);
 
       const actions = document.createElement('span');

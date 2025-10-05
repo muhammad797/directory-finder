@@ -1,38 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <title>Target Directory Finder</title>
   <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;">
-  <style>
-    :root { --bg:#0f172a; --card:#111827; --muted:#94a3b8; --fg:#e5e7eb; --accent:#22c55e; --border:#1f2937; }
-    body { margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial; background: var(--bg); color: var(--fg); }
-    header { padding: 16px 20px; border-bottom: 1px solid var(--border); font-weight: 600; }
-    .wrap { display: grid; grid-template-columns: 360px 1fr; gap: 16px; padding: 16px; }
-    .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
-    .row { display: flex; gap: 8px; align-items: center; }
-    .row + .row { margin-top: 10px; }
-    input[type="text"], select { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid #374151; background: #0b1220; color: var(--fg); }
-    button { background: #1f2937; border: 1px solid #374151; color: var(--fg); padding: 10px 14px; border-radius: 8px; cursor: pointer; }
-    button.primary { background: var(--accent); border-color: var(--accent); color: #052e16; font-weight: 600; }
-    .muted { color: var(--muted); font-size: 12px; }
-    .targets { display: grid; gap: 8px; }
-    .targets li { display:flex; align-items:center; justify-content:space-between; background:#0b1220; border:1px solid #374151; border-radius:8px; padding:6px 10px; }
-    .targets .name { font-weight:600; }
-    .targets .del { background:transparent; border:1px solid #374151; padding:4px 8px; border-radius:6px; }
-    .badge { display:inline-block; padding:2px 8px; border-radius:999px; background:#083344; border:1px solid #0e7490; color:#67e8f9; font-size:11px; }
-    .results { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; font-size: 12.5px; line-height: 1.35; white-space: pre-wrap; }
-    .group { margin-top:14px; }
-    .group h4 { margin:0 0 6px 0; font-size:13px; color:#cbd5e1; }
-    .group .item { padding:6px 8px; border:1px solid #374151; border-radius:6px; background:#0b1220; margin-top:6px; }
-    .controls { display:grid; gap:8px; grid-template-columns: 1fr 1fr 1fr; }
-    .target-row { display:grid; grid-template-columns: 1fr auto; gap:8px; }
-    #results button {
-      padding: 2px 8px;
-    }
-  </style>
+    content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;">
+  <link rel="stylesheet" href="./styles.css">
 </head>
+
 <body>
   <header>Target Directory Finder</header>
   <div class="wrap">
@@ -73,7 +49,8 @@
       </div>
 
       <p class="muted" style="margin-top:12px">
-        In Directories mode, the scanner will NOT descend into matched folders (e.g., it won’t read inside <code>node_modules</code>).
+        In Directories mode, the scanner will NOT descend into matched folders (e.g., it won’t read inside
+        <code>node_modules</code>).
       </p>
     </section>
 
@@ -107,4 +84,5 @@
 
   <script src="./renderer.js"></script>
 </body>
+
 </html>
