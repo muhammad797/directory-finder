@@ -6,25 +6,34 @@
   <meta http-equiv="Content-Security-Policy"
         content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;">
   <style>
-    :root { --bg:#0f172a; --card:#111827; --muted:#94a3b8; --fg:#e5e7eb; --accent:#22c55e; }
+    :root { --bg:#0f172a; --card:#111827; --muted:#94a3b8; --fg:#e5e7eb; --accent:#22c55e; --border:#1f2937; }
     body { margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial; background: var(--bg); color: var(--fg); }
-    header { padding: 16px 20px; border-bottom: 1px solid #1f2937; font-weight: 600; }
+    header { padding: 16px 20px; border-bottom: 1px solid var(--border); font-weight: 600; }
     .wrap { display: grid; grid-template-columns: 360px 1fr; gap: 16px; padding: 16px; }
-    .card { background: var(--card); border: 1px solid #1f2937; border-radius: 12px; padding: 16px; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
     .row { display: flex; gap: 8px; align-items: center; }
     .row + .row { margin-top: 10px; }
-    input[type="text"] { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid #374151; background: #0b1220; color: var(--fg); }
-    textarea { width: 100%; height: 110px; padding: 10px 12px; border-radius: 8px; border: 1px solid #374151; background: #0b1220; color: var(--fg); resize: vertical; }
+    input[type="text"], select { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid #374151; background: #0b1220; color: var(--fg); }
     button { background: #1f2937; border: 1px solid #374151; color: var(--fg); padding: 10px 14px; border-radius: 8px; cursor: pointer; }
     button.primary { background: var(--accent); border-color: var(--accent); color: #052e16; font-weight: 600; }
     .muted { color: var(--muted); font-size: 12px; }
-    .results { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; font-size: 12.5px; line-height: 1.35; white-space: pre-wrap; }
+    .targets { display: grid; gap: 8px; }
+    .targets li { display:flex; align-items:center; justify-content:space-between; background:#0b1220; border:1px solid #374151; border-radius:8px; padding:6px 10px; }
+    .targets .name { font-weight:600; }
+    .targets .del { background:transparent; border:1px solid #374151; padding:4px 8px; border-radius:6px; }
     .badge { display:inline-block; padding:2px 8px; border-radius:999px; background:#083344; border:1px solid #0e7490; color:#67e8f9; font-size:11px; }
+    .results { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; font-size: 12.5px; line-height: 1.35; white-space: pre-wrap; }
+    .group { margin-top:14px; }
+    .group h4 { margin:0 0 6px 0; font-size:13px; color:#cbd5e1; }
+    .group .item { padding:6px 8px; border:1px solid #374151; border-radius:6px; background:#0b1220; margin-top:6px; }
+    .controls { display:grid; gap:8px; grid-template-columns: 1fr 1fr 1fr; }
+    .target-row { display:grid; grid-template-columns: 1fr auto; gap:8px; }
   </style>
 </head>
 <body>
   <header>Target Directory Finder</header>
   <div class="wrap">
+    <!-- Left: Settings -->
     <section class="card">
       <h3 style="margin-top:0">Settings</h3>
 
@@ -33,11 +42,16 @@
         <button id="chooseBtn">Browse…</button>
       </div>
 
-      <div class="row">
-        <textarea id="targetsInput" placeholder="Targets (comma-separated), e.g.: node_modules, Pods, .git, dist, build">node_modules, Pods, .git, dist, build</textarea>
+      <div class="row"><span class="muted">Targets</span></div>
+      <div class="targets-wrap">
+        <div class="target-row">
+          <input id="newTargetInput" type="text" placeholder="Add folder name (e.g., node_modules)">
+          <button id="addTargetBtn">Add</button>
+        </div>
+        <ul id="targetsList" class="targets" style="list-style:none; padding:0; margin-top:8px;"></ul>
       </div>
 
-      <div class="row">
+      <div class="row" style="margin-top:10px;">
         <button id="scanBtn" class="primary">Scan</button>
         <span id="status" class="muted"></span>
       </div>
@@ -47,11 +61,30 @@
       </p>
     </section>
 
+    <!-- Right: Results -->
     <section class="card">
-      <div class="row" style="justify-content: space-between;">
-        <h3 style="margin:0">Results</h3>
-        <span class="badge"><span id="count">0</span> found</span>
+      <div class="row" style="justify-content: space-between; align-items:center;">
+        <div class="row" style="gap:12px;">
+          <span class="badge"><span id="count">0</span> found</span>
+          <input id="searchInput" type="text" placeholder="Search… (filters results)">
+        </div>
+        <div class="controls">
+          <select id="groupBy">
+            <option value="target">Group: Target name</option>
+            <option value="parent">Group: Parent folder</option>
+            <option value="top">Group: Top-level under root</option>
+            <option value="none">Group: None</option>
+          </select>
+          <select id="sortBy">
+            <option value="az">Sort: A → Z</option>
+            <option value="za">Sort: Z → A</option>
+            <option value="lenAsc">Sort: Path length (short → long)</option>
+            <option value="lenDesc">Sort: Path length (long → short)</option>
+          </select>
+          <button id="copyBtn">Copy list</button>
+        </div>
       </div>
+
       <div id="results" class="results" style="margin-top:10px;"></div>
     </section>
   </div>
