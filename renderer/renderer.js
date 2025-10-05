@@ -223,6 +223,11 @@ function renderResults() {
         badge.className = 'badge';
         badge.textContent = '…';
         left.appendChild(badge);
+        const remoteBadge = document.createElement('span');
+        remoteBadge.className = 'badge';
+        remoteBadge.style.marginLeft = '6px';
+        remoteBadge.textContent = '…';
+        left.appendChild(remoteBadge);
         // Fetch status asynchronously
         window.api.gitStatus(repoPath).then((res) => {
           if (!res || !res.ok) {
@@ -230,6 +235,10 @@ function renderResults() {
             badge.style.background = '#3f1d1d';
             badge.style.borderColor = '#7f1d1d';
             badge.style.color = '#fecaca';
+            remoteBadge.textContent = 'local';
+            remoteBadge.style.background = '#1f2937';
+            remoteBadge.style.borderColor = '#374151';
+            remoteBadge.style.color = '#cbd5e1';
             return;
           }
           if (res.dirty) {
@@ -243,11 +252,27 @@ function renderResults() {
             badge.style.borderColor = '#166534';
             badge.style.color = '#86efac';
           }
+          if (res.hasRemote) {
+            const host = (res.remoteHost || 'remote');
+            remoteBadge.textContent = host;
+            remoteBadge.style.background = '#0b1220';
+            remoteBadge.style.borderColor = '#0ea5e9';
+            remoteBadge.style.color = '#7dd3fc';
+          } else {
+            remoteBadge.textContent = 'local';
+            remoteBadge.style.background = '#1f2937';
+            remoteBadge.style.borderColor = '#374151';
+            remoteBadge.style.color = '#cbd5e1';
+          }
         }).catch(() => {
           badge.textContent = 'not a repo';
           badge.style.background = '#3f1d1d';
           badge.style.borderColor = '#7f1d1d';
           badge.style.color = '#fecaca';
+          remoteBadge.textContent = 'local';
+          remoteBadge.style.background = '#1f2937';
+          remoteBadge.style.borderColor = '#374151';
+          remoteBadge.style.color = '#cbd5e1';
         });
       } else {
         left.textContent = relPath || item;

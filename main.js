@@ -110,7 +110,32 @@ ipcMain.handle('git:status', async (_evt, repoPath) => {
       stdio: ['ignore', 'pipe', 'ignore']
     }).toString();
     const dirty = out.trim().length > 0;
-    return { ok: true, dirty };
+    let hasRemote = false;
+    let remoteHost = '';
+    try {
+      const remotes = childProcess.execSync('git remote -v', {
+        cwd: repoPath,
+        stdio: ['ignore', 'pipe', 'ignore']
+      }).toString();
+      // Parse unique fetch URLs
+      const urls = Array.from(new Set(
+        remotes.split('\n')
+          .map(l => l.trim())
+          .filter(Boolean)
+          .map(l => l.split(/\s+/)[1])
+          .filter(Boolean)
+      ));
+      hasRemote = urls.length > 0;
+      if (hasRemote) {
+        const url = urls[0];
+        if (/github\.com/i.test(url)) remoteHost = 'github';
+        else if (/gitlab\.com/i.test(url)) remoteHost = 'gitlab';
+        else if (/bitbucket\.org/i.test(url)) remoteHost = 'bitbucket';
+        else if (/azure\.com|visualstudio\.com/i.test(url)) remoteHost = 'azure';
+        else remoteHost = 'remote';
+      }
+    } catch {}
+    return { ok: true, dirty, hasRemote, remoteHost };
   } catch (e) {
     // If command fails (not a repo or git missing), return graceful error
     return { ok: false, error: e && e.message ? e.message : String(e) };
